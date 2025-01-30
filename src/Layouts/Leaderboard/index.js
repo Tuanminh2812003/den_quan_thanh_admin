@@ -13,39 +13,37 @@ const Leaderboard = () => {
     const [userInput, setUserInput] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [actionType, setActionType] = useState(null); // Xác định hành động nào đang được thực hiện
+    const [actionType, setActionType] = useState(null); // Xác định hành động đang thực hiện
 
     // Fetch API với phương thức POST
     useEffect(() => {
-        const fetchLeaderboard = async () => {
-            try {
-                const response = await fetch(
-                    "https://quanthanhtemple.wifimedia.vn/api/api/v1/user/all-user",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({}),
-                    }
-                );
-
-                if (!response.ok) {
-                    throw new Error("Failed to fetch leaderboard data.");
-                }
-
-                const data = await response.json();
-                setLeaderboard(data);
-                setFilteredData(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchLeaderboard();
     }, []);
+
+    const fetchLeaderboard = async () => {
+        try {
+            const response = await fetch(
+                "https://quanthanhtemple.wifimedia.vn/api/api/v1/user/all-user",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({}),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("❌ Lỗi khi tải dữ liệu!");
+            }
+
+            const data = await response.json();
+            setLeaderboard(data);
+            setFilteredData(data);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Xử lý khi tìm kiếm
     useEffect(() => {
@@ -112,9 +110,28 @@ const Leaderboard = () => {
         XLSX.writeFile(wb, "leaderboard.xlsx");
     };
 
-    // 🔹 Reset dữ liệu (Sẽ xử lý sau)
-    const resetData = () => {
-        console.log("🔄 Reset dữ liệu - sẽ xử lý sau");
+    // 🔹 Reset dữ liệu
+    const resetData = async () => {
+        try {
+            const response = await fetch(
+                "https://quanthanhtemple.wifimedia.vn/api/api/v1/user/reset",
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("❌ Lỗi khi reset dữ liệu!");
+            }
+
+            alert("✅ Reset dữ liệu thành công!");
+            
+            // Gọi lại API để cập nhật bảng xếp hạng
+            fetchLeaderboard();
+        } catch (err) {
+            alert(err.message);
+        }
     };
 
     if (loading) return <div className="loading">Đang tải dữ liệu...</div>;
@@ -124,8 +141,6 @@ const Leaderboard = () => {
         <div className="leaderboard">
             <div className="leaderboard-container">
                 <h1 className="leaderboard-title">Bảng Xếp Hạng</h1>
-
-                {/* 🔹 Thanh tìm kiếm */}
 
                 {/* 🔹 Nút Xuất Excel & Reset */}
                 <div className="button-group">
